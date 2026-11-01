@@ -77,6 +77,33 @@ public class MyMod : IMod
 
 `ModContext`는 `Info`, `Logger`, `Harmony`, `Directory`를 제공합니다.
 
+## 다국어 문구
+
+모드 폴더의 `assets/lang/<언어 코드>/<파일명>.json`에 문구를 넣으면 로더가 시작할 때 읽습니다. 현재 언어에 키가 없으면 `en`의 문구를 사용합니다.
+
+```
+Mods/MyMod/assets/lang/en/shrine.json
+Mods/MyMod/assets/lang/ko/shrine.json
+```
+
+```json
+{
+  "name": "잊힌 제단",
+  "choice.blood": "피를 바친다. 체력 {0}를 잃고 골드 {1}을 얻는다."
+}
+```
+
+키는 `{모드 id}.{파일명}.{키}` 형식입니다. 게임 데이터에 이 키를 넣으면 게임이 표시할 때마다 현재 언어로 찾습니다. 인자는 `using UnderveilModLoader;`를 추가한 뒤 `Format`으로 넘깁니다.
+
+```csharp
+data.eventName = "my-mod.shrine.name";
+choice.choiceText = "my-mod.shrine.choice.blood".Format("5", "50");
+```
+
+- 파일이 깨졌거나 값이 문자열이 아니면 그 모드는 실패 처리됩니다.
+- `{0}` 형식과 `{cardName}` 같은 게임 토큰은 한 문구에 함께 쓸 수 없습니다. 함께 쓰면 치환 없이 원문이 표시됩니다.
+- 번들은 모드 키에만 적용되므로 게임 문구를 덮어쓸 수 없습니다. 유물처럼 게임이 키를 직접 만드는 문구도 번들로 제공할 수 없습니다.
+
 ## 설정
 
 창에서 끈 모드는 `Mods/settings.json`에 저장됩니다.

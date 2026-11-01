@@ -247,6 +247,16 @@ namespace UnderveilModLoader
                 return;
             }
 
+            try
+            {
+                ModText.Load(entry);
+            }
+            catch (Exception e) when (e is JsonException || e is IOException || e is UnauthorizedAccessException)
+            {
+                Fail(entry, $"Cannot read language files: {e.Message}");
+                return;
+            }
+
             Harmony harmony = new Harmony($"underveil.mod.{entry.Id}");
             // Mods are third-party code, so any exception they raise stays contained to that mod.
             try
@@ -255,6 +265,7 @@ namespace UnderveilModLoader
                     .Where(t => typeof(IMod).IsAssignableFrom(t) && t.IsClass && !t.IsAbstract).ToArray();
                 if (modTypes.Length != 1)
                 {
+                    ModText.Unload(entry);
                     Fail(entry, $"Expected one IMod class, found {modTypes.Length}");
                     return;
                 }
@@ -266,6 +277,7 @@ namespace UnderveilModLoader
             catch (Exception e)
             {
                 harmony.UnpatchSelf();
+                ModText.Unload(entry);
                 Fail(entry, $"{e.GetType().Name}: {e.Message}");
             }
         }

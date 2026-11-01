@@ -38,6 +38,8 @@ dotnet build -c Release -p:GameDir="C:\path\to\Underveil Demo"
 
 ## 모드 만들기
 
+전체 예시는 [UnderveilExampleMod](https://github.com/DevP0tion/UnderveilExampleMod)를 참고하세요.
+
 모드는 `Mods` 안의 폴더 하나이며, manifest와 DLL로 이루어집니다.
 
 ```

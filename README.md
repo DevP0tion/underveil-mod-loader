@@ -16,17 +16,24 @@ Tested with Underveil 0.3.7-Demo and BepInEx 5.4.23.6 (Windows x64).
 
 ## Install
 
-1. Install BepInEx 5 (x64) into the game folder.
-2. Build this project (see below). It copies `UnderveilModLoader.dll` to `BepInEx/plugins`.
-3. Start the game. The loader creates a `Mods` folder next to `Underveil.exe`.
+1. Download the release zip, which includes BepInEx.
+2. Extract the whole zip into the game folder, next to `Underveil.exe`.
+3. Close the game and run `install.cmd`.
+4. Start the game. The loader creates a `Mods` folder next to `Underveil.exe`.
+
+An existing BepInEx install is kept. `install.cmd` and `UnderveilModLoader_files` can be deleted afterwards.
 
 ## Build
 
-Requires the .NET SDK and an installed copy of the game with BepInEx, which provide the referenced assemblies.
+Requires the .NET SDK and an installed copy of the game with BepInEx, which provide the referenced assemblies. The build copies `UnderveilModLoader.dll` to `BepInEx/plugins`.
 
 ```bash
 dotnet build -c Release -p:GameDir="C:\path\to\Underveil Demo"
 ```
+
+## Release
+
+Raise the version in `Plugin.cs`, commit it on `main`, close the game and run `release.cmd`. It builds the loader, packages it with BepInEx, pushes `main` and publishes a GitHub Release. It needs a copy of this repository in the game folder's `_mods_src\UnderveilModLoader`, or the `GameDir` environment variable, and a logged-in GitHub CLI.
 
 ## Making a mod
 

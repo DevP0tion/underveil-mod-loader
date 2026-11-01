@@ -1,0 +1,18 @@
+Underveil Mod Loader
+https://github.com/DevP0tion/underveil-mod-loader
+Licensed under the MIT License. See UnderveilModLoader-LICENSE.txt.
+
+This package includes an unmodified copy of BepInEx 5.4.23.6 (win_x64).
+
+BepInEx is licensed under the GNU Lesser General Public License v2.1.
+See BepInEx-LICENSE.txt.
+Source code: https://github.com/BepInEx/BepInEx/tree/v5.4.23.6
+Original package: https://github.com/BepInEx/BepInEx/releases/tag/v5.4.23.6
+
+BepInEx bundles these libraries, each under its own license:
+- UnityDoorstop: https://github.com/NeighTools/UnityDoorstop
+- HarmonyX: https://github.com/BepInEx/HarmonyX
+- MonoMod: https://github.com/MonoMod/MonoMod
+- Mono.Cecil: https://github.com/jbevain/cecil
+
+This is an unofficial fan project and contains no game files.

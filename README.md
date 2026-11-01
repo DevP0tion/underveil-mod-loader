@@ -33,7 +33,7 @@ dotnet build -c Release -p:GameDir="C:\path\to\Underveil Demo"
 
 ## Release
 
-Raise the version in `Plugin.cs`, commit it on `main`, close the game and run `release.cmd`. It builds the loader, packages it with BepInEx, pushes `main` and publishes a GitHub Release. It needs a copy of this repository in the game folder's `_mods_src\UnderveilModLoader`, or the `GameDir` environment variable, and a logged-in GitHub CLI.
+Raise the version in `Plugin.cs`, commit it on `main`, push it, close the game and run `release.cmd`. It builds the loader, packages it with BepInEx and publishes a GitHub Release. It does not push, and stops if `main` differs from GitHub. It needs a copy of this repository in the game folder's `_mods_src\UnderveilModLoader`, or the `GameDir` environment variable, and a logged-in GitHub CLI.
 
 ## Making a mod
 

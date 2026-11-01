@@ -48,6 +48,15 @@ if errorlevel 3 (
     goto fail
 )
 
+set "LOCAL="
+for /f %%h in ('git rev-parse HEAD') do set "LOCAL=%%h"
+set "REMOTE="
+for /f %%h in ('git ls-remote origin refs/heads/main') do set "REMOTE=%%h"
+if not "%LOCAL%"=="%REMOTE%" (
+    echo main differs from GitHub. Push or pull first, so the release matches the source.
+    goto fail
+)
+
 if exist "%DIST%" rmdir /s /q "%DIST%"
 mkdir "%FILES%\BepInEx_%BEPINEX_VERSION%" || goto fail
 
@@ -74,7 +83,6 @@ copy /y "LICENSE" "%FILES%\UnderveilModLoader-LICENSE.txt" >nul || goto fail
 tar.exe -a -c -f "%ZIP%" -C "%STAGE%" install.cmd UnderveilModLoader_files || goto fail
 
 echo Publishing %TAG%...
-git push origin main || goto fail
 call gh release create "%TAG%" "%ZIP%" --target main --title "Underveil Mod Loader %TAG%" --notes "Extract the zip into the game folder, close the game and run install.cmd." || goto fail
 
 echo.

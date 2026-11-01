@@ -59,6 +59,10 @@ namespace UnderveilModLoader
         private static TMP_Text closeLabel;
         private static GameObject window;
         private static RectTransform listContent;
+        private static RectTransform descriptionContent;
+        private static TMP_Text descriptionText;
+        private static ModEntry selected;
+        private static Sprite circleSprite;
 
         internal static bool IsWindowOpen => window != null && window.activeSelf;
 
@@ -156,7 +160,7 @@ namespace UnderveilModLoader
             dim.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.7f);
 
             RectTransform panel = NewRect("Panel", dim);
-            panel.sizeDelta = new Vector2(1000f, 650f);
+            panel.sizeDelta = new Vector2(1400f, 650f);
             panel.gameObject.AddComponent<Image>().color = new Color(0.09f, 0.08f, 0.11f, 0.98f);
 
             RectTransform titleRect = NewRect("Title", panel);
@@ -182,9 +186,28 @@ namespace UnderveilModLoader
             closeLabelRect.offsetMax = Vector2.zero;
             closeLabel.alignment = TextAlignmentOptions.Center;
 
+            BuildDescription(panel);
             BuildList(panel);
 
             RefreshLabels();
+        }
+
+        private static void BuildDescription(RectTransform panel)
+        {
+            RectTransform box = NewRect("Description", panel);
+            box.anchorMin = Vector2.zero;
+            box.anchorMax = new Vector2(0f, 1f);
+            box.offsetMin = new Vector2(40f, 120f);
+            box.offsetMax = new Vector2(440f, -100f);
+            box.gameObject.AddComponent<Image>().color = new Color(0.14f, 0.13f, 0.17f);
+
+            RectTransform area = NewRect("Area", box);
+            area.anchorMin = Vector2.zero;
+            area.anchorMax = Vector2.one;
+            area.offsetMin = new Vector2(24f, 24f);
+            area.offsetMax = new Vector2(-24f, -24f);
+            descriptionContent = AddScroll(area);
+            descriptionText = AddText(descriptionContent, "");
         }
 
         private static void BuildList(RectTransform panel)
@@ -192,33 +215,55 @@ namespace UnderveilModLoader
             RectTransform scrollRect = NewRect("List", panel);
             scrollRect.anchorMin = Vector2.zero;
             scrollRect.anchorMax = Vector2.one;
-            scrollRect.offsetMin = new Vector2(50f, 120f);
+            scrollRect.offsetMin = new Vector2(480f, 120f);
             scrollRect.offsetMax = new Vector2(-50f, -100f);
+            listContent = AddScroll(scrollRect);
+        }
+
+        private static RectTransform AddScroll(RectTransform area)
+        {
             // Transparent, so the mouse wheel also scrolls over the empty part of the list.
-            scrollRect.gameObject.AddComponent<Image>().color = Color.clear;
-            scrollRect.gameObject.AddComponent<RectMask2D>();
-            ScrollRect scroll = scrollRect.gameObject.AddComponent<ScrollRect>();
+            area.gameObject.AddComponent<Image>().color = Color.clear;
+            area.gameObject.AddComponent<RectMask2D>();
+            ScrollRect scroll = area.gameObject.AddComponent<ScrollRect>();
             scroll.horizontal = false;
             scroll.scrollSensitivity = 40f;
             scroll.movementType = ScrollRect.MovementType.Clamped;
 
-            listContent = NewRect("Content", scrollRect);
-            listContent.anchorMin = new Vector2(0f, 1f);
-            listContent.anchorMax = new Vector2(1f, 1f);
-            listContent.pivot = new Vector2(0.5f, 1f);
-            listContent.sizeDelta = Vector2.zero;
-            VerticalLayoutGroup layout = listContent.gameObject.AddComponent<VerticalLayoutGroup>();
+            RectTransform content = NewRect("Content", area);
+            content.anchorMin = new Vector2(0f, 1f);
+            content.anchorMax = new Vector2(1f, 1f);
+            content.pivot = new Vector2(0.5f, 1f);
+            content.sizeDelta = Vector2.zero;
+            VerticalLayoutGroup layout = content.gameObject.AddComponent<VerticalLayoutGroup>();
             layout.spacing = 18f;
             layout.childControlWidth = true;
             layout.childControlHeight = true;
             layout.childForceExpandHeight = false;
-            listContent.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-            scroll.viewport = scrollRect;
-            scroll.content = listContent;
+            content.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            scroll.viewport = area;
+            scroll.content = content;
+            return content;
+        }
+
+        private static void RefreshDescription()
+        {
+            if (selected == null)
+            {
+                descriptionText.text = "";
+                return;
+            }
+            string description = string.IsNullOrWhiteSpace(selected.Description)
+                ? (IsKorean ? "설명 없음" : "No description")
+                : selected.Description;
+            string text = $"<b><size=90%><noparse>{selected.Name}</noparse></size></b>\n{FormatEntry(selected)}\n";
+            if (!string.IsNullOrEmpty(selected.Error)) text += $"<size=75%><color=#E08080><noparse>{selected.Error}</noparse></color></size>\n";
+            descriptionText.text = text + $"\n<size=85%><noparse>{description}</noparse></size>";
         }
 
         private static void RefreshList()
         {
+            RefreshDescription();
             foreach (Transform row in listContent)
             {
                 Object.Destroy(row.gameObject);
@@ -247,12 +292,65 @@ namespace UnderveilModLoader
             layout.childControlHeight = true;
             layout.childForceExpandWidth = false;
             layout.childForceExpandHeight = false;
-            AddText(row, FormatEntry(entry)).gameObject.AddComponent<LayoutElement>().flexibleWidth = 1f;
+            AddInfoButton(row, entry);
+            AddText(row, $"<noparse>{entry.Name}</noparse>").gameObject.AddComponent<LayoutElement>().flexibleWidth = 1f;
             if (entry.CanToggle)
             {
                 AddPendingNote(row, entry);
                 AddToggle(row, entry);
             }
+        }
+
+        private static void AddInfoButton(Transform row, ModEntry entry)
+        {
+            RectTransform rect = NewRect("Info", row);
+            LayoutElement size = rect.gameObject.AddComponent<LayoutElement>();
+            size.minWidth = 36f;
+            size.minHeight = 36f;
+            size.preferredWidth = 36f;
+            size.preferredHeight = 36f;
+            Image background = rect.gameObject.AddComponent<Image>();
+            background.sprite = GetCircleSprite();
+            background.color = entry == selected ? new Color(0.88f, 0.75f, 0.44f) : new Color(0.25f, 0.23f, 0.3f);
+            Button button = rect.gameObject.AddComponent<Button>();
+            button.targetGraphic = background;
+            button.onClick.AddListener(() =>
+            {
+                selected = entry == selected ? null : entry;
+                descriptionContent.anchoredPosition = Vector2.zero;
+                SoundManager.ins.PlaySFX(SFXType.Click);
+                RefreshList();
+            });
+
+            TextMeshProUGUI label = AddText(rect, "i");
+            label.alignment = TextAlignmentOptions.Center;
+            label.rectTransform.anchorMin = Vector2.zero;
+            label.rectTransform.anchorMax = Vector2.one;
+            label.rectTransform.offsetMin = Vector2.zero;
+            label.rectTransform.offsetMax = Vector2.zero;
+            if (entry == selected) label.color = new Color(0.09f, 0.08f, 0.11f);
+        }
+
+        private static Sprite GetCircleSprite()
+        {
+            if (circleSprite != null)
+            {
+                return circleSprite;
+            }
+            const int size = 64;
+            float radius = size / 2f;
+            Texture2D texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
+            for (int y = 0; y < size; y++)
+            {
+                for (int x = 0; x < size; x++)
+                {
+                    float distance = Vector2.Distance(new Vector2(x + 0.5f, y + 0.5f), new Vector2(radius, radius));
+                    texture.SetPixel(x, y, new Color(1f, 1f, 1f, Mathf.Clamp01(radius - distance)));
+                }
+            }
+            texture.Apply();
+            circleSprite = Sprite.Create(texture, new Rect(0f, 0f, size, size), new Vector2(0.5f, 0.5f));
+            return circleSprite;
         }
 
         // Always takes the same width, so a toggle never rewraps the row and moves the buttons below it.
@@ -311,12 +409,10 @@ namespace UnderveilModLoader
 
         private static string FormatEntry(ModEntry entry)
         {
-            string text = $"<noparse>{entry.Name}</noparse>";
-            if (!string.IsNullOrEmpty(entry.Version)) text += $"  <size=75%><color=#AAAAAA><noparse>v{entry.Version}</noparse></color></size>";
-            if (!string.IsNullOrEmpty(entry.Author)) text += $"  <size=75%><color=#AAAAAA><noparse>{entry.Author}</noparse></color></size>";
-            text += "  " + FormatStatus(entry.Status);
-            if (!string.IsNullOrEmpty(entry.Error)) text += $"\n<size=75%><color=#E08080><noparse>{entry.Error}</noparse></color></size>";
-            return text;
+            string text = "";
+            if (!string.IsNullOrEmpty(entry.Version)) text += $"<size=75%><color=#AAAAAA><noparse>v{entry.Version}</noparse></color></size>  ";
+            if (!string.IsNullOrEmpty(entry.Author)) text += $"<size=75%><color=#AAAAAA><noparse>{entry.Author}</noparse></color></size>  ";
+            return text + FormatStatus(entry.Status);
         }
 
         private static string FormatStatus(ModStatus status)

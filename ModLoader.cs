@@ -37,6 +37,7 @@ namespace UnderveilModLoader
         [JsonProperty("name")] public string Name;
         [JsonProperty("version")] public string Version;
         [JsonProperty("author")] public string Author;
+        [JsonProperty("description")] public string Description;
         [JsonProperty("dll")] public string Dll;
         [JsonProperty("dependencies")] public List<string> Dependencies = new List<string>();
 

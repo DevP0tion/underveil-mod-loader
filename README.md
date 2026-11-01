@@ -26,7 +26,7 @@ BepInEx가 이미 설치되어 있으면 그대로 사용합니다. 설치가 �
 
 ## 빌드
 
-.NET SDK와 BepInEx가 설치된 게임이 필요합니다. 참조 어셈블리를 이 게임 폴더에서 가져옵니다. 빌드하면 `UnderveilModLoader.dll`이 `BepInEx/plugins`로 복사됩니다.
+.NET SDK와 BepInEx가 설치된 게임이 필요합니다. 참조 어셈블리를 이 게임 폴더에서 가져옵니다. 빌드하면 `UnderveilModLoader.dll`과 IDE 설명용 `UnderveilModLoader.xml`이 `BepInEx/plugins`로 복사됩니다.
 
 ```bash
 dotnet build -c Release -p:GameDir="C:\path\to\Underveil Demo"
@@ -76,6 +76,53 @@ public class MyMod : IMod
 ```
 
 `ModContext`는 `Info`, `Logger`, `Harmony`, `Directory`를 제공합니다.
+
+## 이벤트 추가
+
+`ModEvent`를 상속한 클래스에 `[Register]`를 붙이면 모드를 불러올 때 자동으로 게임의 이벤트 풀에 추가됩니다. 이 클래스에는 인자 없는 생성자가 있어야 합니다.
+
+```csharp
+[Register("shrine")]
+public class MyEvent : ModEvent
+{
+    protected override List<EventChoice> CreateChoices()
+    {
+        return new List<EventChoice>
+        {
+            new EventChoice
+            {
+                choiceText = Text("choice.leave"),
+                outcomes = new List<EventOutcome>
+                {
+                    new EventOutcome { type = EventOutcome.Type.None, resultText = Text("result.leave") }
+                }
+            }
+        };
+    }
+}
+```
+
+`[Register("shrine")]`의 인자는 언어 파일 이름이고, `[Register]`처럼 생략하면 클래스 이름을 씁니다. `Text("key")`는 `{모드 id}.{언어 파일 이름}.{key}` 키를 돌려주며, 생성자에서는 호출할 수 없습니다. 필요하면 다음 항목을 재정의할 수 있습니다.
+
+| 항목 | 기본값 |
+|---|---|
+| `EventId` | 모드 id와 클래스 전체 이름의 해시 |
+| `NameKey` | `Text("name")` |
+| `DescriptionKey` | `Text("description")` |
+| `Repeatable` | `false` (한 번 나온 뒤 다시 나오지 않음) |
+| `MinChapter` | `0` |
+| `GetArtwork(events)` | 게임 이벤트에서 첫 번째 이미지를 빌림 |
+| `Requirement(player)` | 항상 `true` |
+
+`Requirement`로 이벤트가 나올 조건을 정할 수 있습니다. 나올 수 있는 이벤트가 하나도 없으면 게임이 조건을 무시하고 전체 이벤트에서 뽑습니다.
+
+```csharp
+protected override bool Requirement(PlayerData player) => player.Gold >= 100;
+```
+
+게임은 이벤트 id를 저장 데이터에 남깁니다. 모드 id나 클래스의 이름, 네임스페이스를 바꾸면 자동 id도 바뀌어, 진행 중이던 이벤트가 복원되지 않고 이미 본 일회성 이벤트가 다시 나올 수 있습니다. 이름을 바꿀 계획이 있으면 `EventId`를 직접 지정하세요.
+
+`EventId`가 이미 쓰이고 있거나 이벤트 생성 중 예외가 나면 그 이벤트만 추가되지 않고 오류가 로그에 남습니다. `[Register]`를 `ModEvent`가 아닌 클래스나 추상 클래스에 붙이거나, 파일 이름이 빈 문자열이거나, 인자 없는 생성자가 없으면 그 모드가 실패 처리됩니다.
 
 ## 다국어 문구
 

@@ -78,6 +78,7 @@ echo Creating the package...
 tar.exe -xf "%DIST%\%BEPINEX_ZIP%" -C "%FILES%\BepInEx_%BEPINEX_VERSION%" || goto fail
 copy /y "install.cmd" "%STAGE%\" >nul || goto fail
 copy /y "bin\Release\netstandard2.1\UnderveilModLoader.dll" "%FILES%\" >nul || goto fail
+copy /y "bin\Release\netstandard2.1\UnderveilModLoader.xml" "%FILES%\" >nul || goto fail
 copy /y "THIRD-PARTY-NOTICES.txt" "%FILES%\" >nul || goto fail
 copy /y "LICENSE" "%FILES%\UnderveilModLoader-LICENSE.txt" >nul || goto fail
 tar.exe -a -c -f "%ZIP%" -C "%STAGE%" install.cmd UnderveilModLoader_files || goto fail

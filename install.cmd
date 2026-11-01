@@ -40,6 +40,7 @@ if errorlevel 1 goto copy_failed
 echo Installing Underveil Mod Loader...
 if not exist "BepInEx\plugins" mkdir "BepInEx\plugins" || goto copy_failed
 copy /y "%FILES%\UnderveilModLoader.dll" "BepInEx\plugins\" >nul || goto copy_failed
+copy /y "%FILES%\UnderveilModLoader.xml" "BepInEx\plugins\" >nul || goto copy_failed
 
 echo.
 echo Done. Start the game and look for the Mods button on the title screen.

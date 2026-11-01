@@ -261,8 +261,8 @@ namespace UnderveilModLoader
             // Mods are third-party code, so any exception they raise stays contained to that mod.
             try
             {
-                Type[] modTypes = Assembly.LoadFrom(dllPath).GetTypes()
-                    .Where(t => typeof(IMod).IsAssignableFrom(t) && t.IsClass && !t.IsAbstract).ToArray();
+                Type[] types = Assembly.LoadFrom(dllPath).GetTypes();
+                Type[] modTypes = types.Where(t => typeof(IMod).IsAssignableFrom(t) && t.IsClass && !t.IsAbstract).ToArray();
                 if (modTypes.Length != 1)
                 {
                     ModText.Unload(entry);
@@ -271,6 +271,7 @@ namespace UnderveilModLoader
                 }
                 IMod mod = (IMod)Activator.CreateInstance(modTypes[0]);
                 mod.OnLoad(new ModContext { Info = entry, Logger = Logger.CreateLogSource(entry.Name), Harmony = harmony });
+                ModEvent.RegisterAll(entry, types);
                 entry.Status = ModStatus.Loaded;
                 log.LogInfo($"[{entry.Id}] Loaded {entry.Version}");
             }
@@ -278,6 +279,7 @@ namespace UnderveilModLoader
             {
                 harmony.UnpatchSelf();
                 ModText.Unload(entry);
+                ModEvent.Unload(entry);
                 Fail(entry, $"{e.GetType().Name}: {e.Message}");
             }
         }
